@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sajeel Mods | SIM DATA PRO</title>
@@ -8,7 +6,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&amp;display=swap" rel="stylesheet">
 
 <style>
 body{
@@ -37,24 +35,109 @@ body{
     animation:spin 1s linear infinite;
 }
 @keyframes spin{100%{transform:rotate(360deg)}}
+
+.back-home-btn{
+    transition: all 0.2s ease;
+}
+.back-home-btn:hover{
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.2);
+}
+
+/* pill active style */
+.pill-active{
+    background: rgba(239,68,68,0.15);
+    border-color: #ef4444;
+    color: #fca5a5;
+}
+.tool-icon{
+    color: #ef4444;
+}
+
+/* popup overlay */
+.popup-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+}
+.popup-box {
+    background: linear-gradient(145deg, #1e1b2e, #0f0c1a);
+    padding: 38px 32px 32px;
+    border-radius: 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.9);
+    position: relative;
+    overflow: hidden;
+}
+.popup-icon { font-size: 48px; color: #25D366; display: block; margin-bottom: 12px; }
+.popup-box h2 { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.popup-box p { color: #a5b4d0; font-size: 14px; margin-bottom: 26px; }
+.popup-btn {
+    padding: 12px 30px;
+    border-radius: 30px;
+    border: none;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+.popup-btn.join {
+    background: #25D366;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(37,211,102,0.25);
+}
+.popup-btn.join:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,211,102,0.35); }
+.popup-btn.close {
+    background: #2a2a3e;
+    color: #a5b4d0;
+}
+.popup-btn.close:hover { background: #3a3a52; color: #fff; }
+.hidden { display: none !important; }
 </style>
 </head>
 
 <body class="min-h-screen flex items-center justify-center px-4">
 
-<!-- LOGIN -->
-<div id="loginBox" class="glass max-w-md w-full p-8 shadow-2xl hidden">
+<!-- ─── WHATSAPP POPUP ─── -->
+<div id="popupOverlay" class="popup-overlay">
+    <div class="popup-box">
+        <span class="popup-icon"><i class="fab fa-whatsapp"></i></span>
+        <h2>Join Channel</h2>
+        <p>Get real SIM data, updates &amp; more</p>
+        <div class="flex gap-3 justify-center flex-wrap">
+            <a href="https://whatsapp.com/channel/0029Vb8AwFY1NCrVwtLIfh2A" target="_blank" class="popup-btn join">
+                <i class="fab fa-whatsapp"></i> JOIN NOW
+            </a>
+            <button id="popupCloseBtn" class="popup-btn close">CLOSE</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── LOGIN ─── -->
+<div id="loginBox" class="glass max-w-md w-full p-8 shadow-2xl">
     <h1 class="text-3xl font-extrabold text-center mb-1 tracking-wide">
         Sajeel <span class="text-red-500">Mods</span>
     </h1>
     <p class="text-center text-slate-400 mb-8">Contact For Login 03061601587</p>
 
-    <input id="username" placeholder="Username"
-        class="w-full mb-4 px-5 py-4 rounded-xl bg-black/50 border border-white/10 outline-none font-semibold">
+    <input id="username" placeholder="Username" class="w-full mb-4 px-5 py-4 rounded-xl bg-black/50 border border-white/10 outline-none font-semibold">
 
     <div class="relative">
-        <input id="password" type="password" placeholder="Password"
-            class="w-full px-5 py-4 rounded-xl bg-black/50 border border-white/10 outline-none font-semibold">
+        <input id="password" type="password" placeholder="Password" class="w-full px-5 py-4 rounded-xl bg-black/50 border border-white/10 outline-none font-semibold">
         <i onclick="togglePass()" class="fa fa-eye absolute right-5 top-5 cursor-pointer text-slate-400"></i>
     </div>
 
@@ -65,134 +148,231 @@ body{
     </button>
 </div>
 
-<!-- MAIN APP -->
+<!-- ─── MAIN APP ─── -->
 <div id="app" class="hidden w-full max-w-3xl mx-auto py-10">
 
-<div class="flex justify-between items-center mb-8">
-    <h2 class="text-2xl font-extrabold tracking-wide">
-        SIM DATA <span class="text-red-500">PRO By Sajeel</span>
-    </h2>
-    <button onclick="logout()" class="text-sm bg-red-600/80 hover:bg-red-600 px-4 py-2 rounded-lg font-bold">
-        Logout
-    </button>
-</div>
-
-<!-- SEARCH -->
-<div class="glass p-6 mb-8 space-y-5">
-    <input id="phoneInput" placeholder="03XXXXXXXXX"
-        class="w-full px-6 py-5 rounded-2xl bg-black/50 border border-white/10 outline-none font-bold text-lg tracking-wider">
-
-    <button id="searchBtn" onclick="fetchData()"
-        class="w-full red-btn py-5 rounded-2xl font-extrabold tracking-widest flex items-center justify-center gap-3">
-        <span id="btnText">SEARCH DATABASE</span>
-        <div id="btnLoader" class="button-loader hidden"></div>
-    </button>
-</div>
-
-<!-- RESULT -->
-<div id="contentArea" class="hidden glass p-6 space-y-5">
-    <div class="text-center border-b border-white/10 pb-4">
-        <h3 class="font-extrabold text-lg tracking-wide">SAJEEL DATA REPORT</h3>
-        <p id="reportDate" class="text-xs text-slate-400"></p>
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-extrabold tracking-wide">
+            SIM DATA <span class="text-red-500">PRO By Sajeel</span>
+        </h2>
+        <button onclick="logout()" class="text-sm bg-red-600/80 hover:bg-red-600 px-4 py-2 rounded-lg font-bold">
+            Logout
+        </button>
     </div>
 
-    <div id="resultsList" class="space-y-4"></div>
+    <!-- SEARCH SECTION -->
+    <div class="glass p-6 mb-6 space-y-5" id="searchSection">
+        <input id="phoneInput" placeholder="Number or CNIC (e.g. 03XXXXXXXXX or 13 digits)"
+               class="w-full px-6 py-5 rounded-2xl bg-black/50 border border-white/10 outline-none font-bold text-lg tracking-wider">
 
-    <a href="https://wa.me/923061601587" target="_blank"
-       class="block text-center mt-6 text-sm text-slate-400 hover:text-red-400 font-bold">
-        CONTACT ON WHATSAPP
-    </a>
+        <button id="searchBtn" onclick="fetchData()" class="w-full red-btn py-5 rounded-2xl font-extrabold tracking-widest flex items-center justify-center gap-3">
+            <span id="btnText">SEARCH DATABASE</span>
+            <div id="btnLoader" class="button-loader hidden"></div>
+        </button>
+    </div>
 
-    <button onclick="takeScreenshot()"
-        class="w-full red-btn py-5 rounded-2xl font-extrabold tracking-widest mt-6">
-        SAVE SCREENSHOT
-    </button>
-</div>
+    <!-- PILLS & TOOLS (inspired from second code) -->
+    <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="glass p-3 text-center border border-white/10 rounded-xl flex items-center justify-center gap-2 pill-active">
+            <i class="fas fa-address-card text-red-400"></i>
+            <span class="font-semibold text-sm">SIM Database</span>
+            <i class="fas fa-check-circle text-green-400 text-xs"></i>
+        </div>
+        <div class="glass p-3 text-center border border-white/10 rounded-xl flex items-center justify-center gap-2 opacity-60">
+            <i class="fas fa-user-check text-slate-400"></i>
+            <span class="font-semibold text-sm">ID Verification</span>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="glass p-3 text-center border border-white/10 rounded-xl flex items-center justify-center gap-2 opacity-60">
+            <i class="fas fa-wifi text-slate-400"></i>
+            <span class="font-semibold text-sm">Network</span>
+        </div>
+        <div class="glass p-3 text-center border border-white/10 rounded-xl flex items-center justify-center gap-2 opacity-60">
+            <i class="fas fa-microchip text-slate-400"></i>
+            <span class="font-semibold text-sm">Device Specs</span>
+        </div>
+    </div>
 
-<div id="errorState" class="hidden text-center glass p-10">
-    <h2 class="text-xl font-bold">No Data Found</h2>
-</div>
+    <!-- RESULT -->
+    <div id="contentArea" class="hidden glass p-6 space-y-5">
+        <div class="flex items-center gap-3 pb-3 border-b border-white/10">
+            <button onclick="goHome()" class="back-home-btn flex items-center gap-2 text-sm text-slate-400 hover:text-white px-3 py-2 rounded-xl border border-white/5 hover:border-white/20 transition-all">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </button>
+            <span class="text-xs text-slate-500 ml-auto">report</span>
+        </div>
+
+        <div class="text-center border-b border-white/10 pb-4">
+            <h3 class="font-extrabold text-lg tracking-wide">SAJEEL DATA REPORT</h3>
+            <p id="reportDate" class="text-xs text-slate-400"></p>
+        </div>
+
+        <div id="resultsList" class="space-y-4"></div>
+
+        <a href="https://wa.me/923061601587" target="_blank" class="block text-center mt-6 text-sm text-slate-400 hover:text-red-400 font-bold">
+            CONTACT ON WHATSAPP
+        </a>
+
+        <button onclick="takeScreenshot()" class="w-full red-btn py-5 rounded-2xl font-extrabold tracking-widest mt-6">
+            SAVE SCREENSHOT
+        </button>
+    </div>
+
+    <div id="errorState" class="hidden text-center glass p-10">
+        <h2 class="text-xl font-bold">No Data Found</h2>
+        <p class="text-slate-400 text-sm mt-2">Try a different number or CNIC</p>
+    </div>
 
 </div>
 
 <script>
-const USER="sajeelxhacker";
-const PASS="s4sajeeldb";
+// ─── CREDENTIALS ──────────────────────
+const USER = "sajeelxhacker";
+const PASS = "s4sajeeldb";
 
-/* ONE-TIME LOGIN CHECK */
-if(localStorage.getItem("sajeel_logged")==="true"){
-    loginBox.classList.add("hidden");
-    app.classList.remove("hidden");
-}else{
-    loginBox.classList.remove("hidden");
+// ─── DOM REFS ─────────────────────────
+const loginBox = document.getElementById('loginBox');
+const app = document.getElementById('app');
+const username = document.getElementById('username');
+const password = document.getElementById('password');
+const loginError = document.getElementById('loginError');
+const phoneInput = document.getElementById('phoneInput');
+const btnText = document.getElementById('btnText');
+const btnLoader = document.getElementById('btnLoader');
+const contentArea = document.getElementById('contentArea');
+const errorState = document.getElementById('errorState');
+const resultsList = document.getElementById('resultsList');
+const reportDate = document.getElementById('reportDate');
+
+// ─── POPUP ────────────────────────────
+const popup = document.getElementById('popupOverlay');
+const popupClose = document.getElementById('popupCloseBtn');
+popupClose.addEventListener('click', ()=> popup.classList.add('hidden'));
+popup.addEventListener('click', (e)=> { if(e.target === popup) popup.classList.add('hidden'); });
+
+// ─── SESSION CHECK ────────────────────
+if (localStorage.getItem('sajeel_logged') === 'true') {
+    loginBox.classList.add('hidden');
+    app.classList.remove('hidden');
+} else {
+    loginBox.classList.remove('hidden');
 }
 
-function togglePass(){
-    password.type=password.type==="password"?"text":"password";
+// ─── TOGGLE PASSWORD ──────────────────
+function togglePass() {
+    password.type = password.type === 'password' ? 'text' : 'password';
 }
 
-function login(){
-    if(username.value===USER && password.value===PASS){
-        localStorage.setItem("sajeel_logged","true");
-        loginBox.classList.add("hidden");
-        app.classList.remove("hidden");
-    }else{
-        loginError.classList.remove("hidden");
+// ─── LOGIN ────────────────────────────
+function login() {
+    if (username.value.trim() === USER && password.value.trim() === PASS) {
+        localStorage.setItem('sajeel_logged', 'true');
+        loginBox.classList.add('hidden');
+        app.classList.remove('hidden');
+        loginError.classList.add('hidden');
+    } else {
+        loginError.classList.remove('hidden');
     }
 }
 
-function logout(){
-    localStorage.removeItem("sajeel_logged");
+// ─── LOGOUT ───────────────────────────
+function logout() {
+    localStorage.removeItem('sajeel_logged');
     location.reload();
 }
 
-async function fetchData(){
-    const num=phoneInput.value.trim();
-    if(!/^03\d{9}$/.test(num)) return alert("Enter valid number");
+// ─── BACK TO HOME ─────────────────────
+function goHome() {
+    contentArea.classList.add('hidden');
+    errorState.classList.add('hidden');
+    resultsList.innerHTML = '';
+    document.getElementById('searchSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    phoneInput.focus();
+}
 
-    btnText.classList.add("hidden");
-    btnLoader.classList.remove("hidden");
-    resultsList.innerHTML="";
-    contentArea.classList.add("hidden");
-    errorState.classList.add("hidden");
+// ─── ENTER KEY SUPPORT ────────────────
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        if (!loginBox.classList.contains('hidden')) login();
+        else if (!app.classList.contains('hidden')) fetchData();
+    }
+});
 
-    try{
-        const res=await fetch(`https://pak-sim-info.ftgmhacks.workers.dev/?num=${num}`);
-        const data=await res.json();
+// ─── FETCH DATA (supports both number & CNIC) ──
+async function fetchData() {
+    const query = phoneInput.value.trim();
+    if (!query) return alert('Please enter a number or CNIC');
 
-        reportDate.innerText=new Date().toLocaleString();
+    // validate: either 11 digits starting with 03 (mobile) or 13 digits (CNIC)
+    const isMobile = /^03\d{9}$/.test(query);
+    const isCNIC = /^\d{13}$/.test(query);
+    if (!isMobile && !isCNIC) {
+        alert('Enter a valid Pakistani number (03XXXXXXXXX) or 13-digit CNIC');
+        return;
+    }
 
-        if(data.success && data.data.data.length){
-            data.data.data.forEach(i=>{
-                resultsList.innerHTML+=`
-                <div class="p-5 rounded-2xl bg-black/40 border border-white/10">
-                    <p class="font-extrabold text-red-400 text-lg">${i.Name}</p>
-                    <p class="text-sm mt-1">Mobile: ${i.Mobile}</p>
-                    <p class="text-sm">CNIC: ${i.CNIC.replace(/^(\d{5})\d+(\d{1})$/,"$1******$2")}</p>
-                    <p class="text-xs text-slate-400 mt-2">${i.Address}</p>
-                </div>`;
+    btnText.classList.add('hidden');
+    btnLoader.classList.remove('hidden');
+    resultsList.innerHTML = '';
+    contentArea.classList.add('hidden');
+    errorState.classList.add('hidden');
+
+    try {
+        const res = await fetch(`https://sim-db-api.faizankhichi.me/?search=${encodeURIComponent(query)}`);
+        const json = await res.json();
+
+        reportDate.innerText = new Date().toLocaleString();
+
+        if (json.ok && json.data && json.data.length) {
+            json.data.forEach(item => {
+                const name = item.nam || 'N/A';
+                const mobile = item.nbr || 'N/A';
+                let cnic = item.cni || 'N/A';
+                if (cnic.length >= 13) {
+                    cnic = cnic.slice(0,5) + '******' + cnic.slice(-1);
+                }
+                const address = item.adr || '';
+
+                resultsList.innerHTML += `
+                    <div class="p-5 rounded-2xl bg-black/40 border border-white/10">
+                        <p class="font-extrabold text-red-400 text-lg">${escapeHTML(name)}</p>
+                        <p class="text-sm mt-1">Mobile: ${escapeHTML(mobile)}</p>
+                        <p class="text-sm">CNIC: ${escapeHTML(cnic)}</p>
+                        <p class="text-xs text-slate-400 mt-2">${escapeHTML(address)}</p>
+                    </div>
+                `;
             });
-            contentArea.classList.remove("hidden");
-        }else{
-            errorState.classList.remove("hidden");
+            contentArea.classList.remove('hidden');
+            setTimeout(() => contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+        } else {
+            errorState.classList.remove('hidden');
         }
-    }catch{
-        errorState.classList.remove("hidden");
-    }finally{
-        btnText.classList.remove("hidden");
-        btnLoader.classList.add("hidden");
+    } catch (err) {
+        console.error(err);
+        errorState.classList.remove('hidden');
+    } finally {
+        btnText.classList.remove('hidden');
+        btnLoader.classList.add('hidden');
     }
 }
 
-function takeScreenshot(){
-    html2canvas(contentArea,{scale:2,backgroundColor:"#020617"}).then(c=>{
-        const a=document.createElement("a");
-        a.href=c.toDataURL();
-        a.download="SajeelMods_SIM_DB.png";
+// ─── ESCAPE HTML ──────────────────────
+function escapeHTML(str) {
+    if (!str) return '';
+    const map = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};
+    return str.replace(/[&<>"']/g, m => map[m]);
+}
+
+// ─── SCREENSHOT ───────────────────────
+function takeScreenshot() {
+    html2canvas(contentArea, { scale: 2, backgroundColor: '#020617' }).then(c => {
+        const a = document.createElement('a');
+        a.href = c.toDataURL();
+        a.download = `SajeelMods_SIM_${new Date().toISOString().slice(0,10)}.png`;
         a.click();
     });
 }
 </script>
 
-</body>
-</html>
+</body></html>
