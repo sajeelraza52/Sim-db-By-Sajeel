@@ -230,9 +230,6 @@ body{
 const USER = "sajeelxhacker";
 const PASS = "s4sajeeldb";
 
-// ─── UPSTREAM API ─────────────────────
-const UPSTREAM_API = "https://amscript.xyz/PublicApi/Siminfo.php?number=";
-
 // ─── DOM REFS ─────────────────────────
 const loginBox = document.getElementById('loginBox');
 const app = document.getElementById('app');
@@ -301,61 +298,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// ─── NUMBER NORMALIZE ─────────────────
-function normalizeNumber(input) {
-    let digits = String(input).replace(/\D/g, '');
-    if (digits.startsWith('0092')) {
-        digits = digits.slice(4);
-    } else if (digits.startsWith('92') && digits.length === 12) {
-        digits = digits.slice(2);
-    } else {
-        digits = digits.replace(/^0+/, '');
-    }
-    return digits;
-}
-
-// ─── FETCH WITH CORS FALLBACK ─────────
-async function fetchUpstream(digits) {
-    const directUrl = UPSTREAM_API + encodeURIComponent(digits);
-
-    // 1) Try direct call first
-    try {
-        const res = await fetch(directUrl, { headers: { 'Accept': 'application/json' } });
-        if (res.ok) {
-            const text = await res.text();
-            try { return JSON.parse(text); } catch (_) { /* fall through */ }
-        }
-    } catch (e) {
-        console.warn('Direct fetch failed, trying proxies...', e.message);
-    }
-
-    // 2) CORS proxy fallbacks
-    const proxies = [
-        u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-        u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-        u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-    ];
-
-    let lastErr = 'All fetch attempts failed';
-    for (const makeUrl of proxies) {
-        try {
-            const res = await fetch(makeUrl(directUrl));
-            if (!res.ok) { lastErr = `HTTP ${res.status}`; continue; }
-            const text = await res.text();
-            try {
-                const json = JSON.parse(text);
-                return json;
-            } catch (_) {
-                lastErr = 'Invalid JSON from proxy';
-            }
-        } catch (e) {
-            lastErr = e.message;
-        }
-    }
-    throw new Error(lastErr);
-}
-
-// ─── FETCH DATA ───────────────────────
+// ─── FETCH DATA (via Vercel Function) ──
 async function fetchData() {
     const query = phoneInput.value.trim();
     if (!query) return alert('Please enter a number');
@@ -372,35 +315,34 @@ async function fetchData() {
     errorState.classList.add('hidden');
 
     try {
-        const digits = normalizeNumber(query);
-        const data = await fetchUpstream(digits);
+        // Yahan hum apni hi site ke serverless function ko call kar rahe hain
+        const res = await fetch(`/api/proxy?number=${encodeURIComponent(query)}`);
+        const json = await res.json();
 
         reportDate.innerText = new Date().toLocaleString();
 
-        const records = data?.data;
-        const record = Array.isArray(records) ? records[0] : records;
+        if (json.success && json.details) {
+            const d = json.details;
 
-        if (!record) {
-            console.warn('No record in upstream response', data);
+            let cnic = d.cnic || 'N/A';
+            if (cnic.length >= 13) {
+                cnic = cnic.slice(0, 5) + '******' + cnic.slice(-1);
+            }
+
+            resultsList.innerHTML = `
+                <div class="p-5 rounded-2xl bg-black/40 border border-white/10">
+                    <p class="font-extrabold text-red-400 text-lg">${escapeHTML(d.name)}</p>
+                    <p class="text-sm mt-1">Mobile: ${escapeHTML(d.mobile)}</p>
+                    <p class="text-sm">CNIC: ${escapeHTML(cnic)}</p>
+                    <p class="text-xs text-slate-400 mt-2">${escapeHTML(d.address)}</p>
+                </div>
+            `;
+            contentArea.classList.remove('hidden');
+            setTimeout(() => contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+        } else {
+            console.warn('API error:', json.error);
             errorState.classList.remove('hidden');
-            return;
         }
-
-        let cnic = record.cnic || 'N/A';
-        if (cnic.length >= 13) {
-            cnic = cnic.slice(0, 5) + '******' + cnic.slice(-1);
-        }
-
-        resultsList.innerHTML = `
-            <div class="p-5 rounded-2xl bg-black/40 border border-white/10">
-                <p class="font-extrabold text-red-400 text-lg">${escapeHTML(record.full_name || 'Not Found')}</p>
-                <p class="text-sm mt-1">Mobile: ${escapeHTML(record.phone || query)}</p>
-                <p class="text-sm">CNIC: ${escapeHTML(cnic)}</p>
-                <p class="text-xs text-slate-400 mt-2">${escapeHTML(record.address || 'Not Found')}</p>
-            </div>
-        `;
-        contentArea.classList.remove('hidden');
-        setTimeout(() => contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
     } catch (err) {
         console.error(err);
         errorState.classList.remove('hidden');
