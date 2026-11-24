@@ -45,7 +45,6 @@ body{
     border-color: rgba(255,255,255,0.2);
 }
 
-/* pill active style */
 .pill-active{
     background: rgba(239,68,68,0.15);
     border-color: #ef4444;
@@ -55,7 +54,6 @@ body{
     color: #ef4444;
 }
 
-/* popup overlay */
 .popup-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -163,7 +161,7 @@ body{
 
     <!-- SEARCH SECTION -->
     <div class="glass p-6 mb-6 space-y-5" id="searchSection">
-        <input id="phoneInput" placeholder="Number or CNIC (e.g. 03XXXXXXXXX or 13 digits)"
+        <input id="phoneInput" placeholder="Enter mobile number (03XXXXXXXXX)"
                class="w-full px-6 py-5 rounded-2xl bg-black/50 border border-white/10 outline-none font-bold text-lg tracking-wider">
 
         <button id="searchBtn" onclick="fetchData()" class="w-full red-btn py-5 rounded-2xl font-extrabold tracking-widest flex items-center justify-center gap-3">
@@ -172,7 +170,7 @@ body{
         </button>
     </div>
 
-    <!-- PILLS & TOOLS (inspired from second code) -->
+    <!-- PILLS & TOOLS -->
     <div class="grid grid-cols-2 gap-3 mb-6">
         <div class="glass p-3 text-center border border-white/10 rounded-xl flex items-center justify-center gap-2 pill-active">
             <i class="fas fa-address-card text-red-400"></i>
@@ -222,7 +220,7 @@ body{
 
     <div id="errorState" class="hidden text-center glass p-10">
         <h2 class="text-xl font-bold">No Data Found</h2>
-        <p class="text-slate-400 text-sm mt-2">Try a different number or CNIC</p>
+        <p class="text-slate-400 text-sm mt-2">Try a different number</p>
     </div>
 
 </div>
@@ -231,6 +229,9 @@ body{
 // ─── CREDENTIALS ──────────────────────
 const USER = "sajeelxhacker";
 const PASS = "s4sajeeldb";
+
+// ─── UPSTREAM API ─────────────────────
+const UPSTREAM_API = "https://amscript.xyz/PublicApi/Siminfo.php?number=";
 
 // ─── DOM REFS ─────────────────────────
 const loginBox = document.getElementById('loginBox');
@@ -300,16 +301,67 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// ─── FETCH DATA (supports both number & CNIC) ──
+// ─── NUMBER NORMALIZE ─────────────────
+function normalizeNumber(input) {
+    let digits = String(input).replace(/\D/g, '');
+    if (digits.startsWith('0092')) {
+        digits = digits.slice(4);
+    } else if (digits.startsWith('92') && digits.length === 12) {
+        digits = digits.slice(2);
+    } else {
+        digits = digits.replace(/^0+/, '');
+    }
+    return digits;
+}
+
+// ─── FETCH WITH CORS FALLBACK ─────────
+async function fetchUpstream(digits) {
+    const directUrl = UPSTREAM_API + encodeURIComponent(digits);
+
+    // 1) Try direct call first
+    try {
+        const res = await fetch(directUrl, { headers: { 'Accept': 'application/json' } });
+        if (res.ok) {
+            const text = await res.text();
+            try { return JSON.parse(text); } catch (_) { /* fall through */ }
+        }
+    } catch (e) {
+        console.warn('Direct fetch failed, trying proxies...', e.message);
+    }
+
+    // 2) CORS proxy fallbacks
+    const proxies = [
+        u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+        u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+        u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    ];
+
+    let lastErr = 'All fetch attempts failed';
+    for (const makeUrl of proxies) {
+        try {
+            const res = await fetch(makeUrl(directUrl));
+            if (!res.ok) { lastErr = `HTTP ${res.status}`; continue; }
+            const text = await res.text();
+            try {
+                const json = JSON.parse(text);
+                return json;
+            } catch (_) {
+                lastErr = 'Invalid JSON from proxy';
+            }
+        } catch (e) {
+            lastErr = e.message;
+        }
+    }
+    throw new Error(lastErr);
+}
+
+// ─── FETCH DATA ───────────────────────
 async function fetchData() {
     const query = phoneInput.value.trim();
-    if (!query) return alert('Please enter a number or CNIC');
+    if (!query) return alert('Please enter a number');
 
-    // validate: either 11 digits starting with 03 (mobile) or 13 digits (CNIC)
-    const isMobile = /^03\d{9}$/.test(query);
-    const isCNIC = /^\d{13}$/.test(query);
-    if (!isMobile && !isCNIC) {
-        alert('Enter a valid Pakistani number (03XXXXXXXXX) or 13-digit CNIC');
+    if (!/^03\d{9}$/.test(query)) {
+        alert('Enter valid mobile number: 03XXXXXXXXX');
         return;
     }
 
@@ -320,35 +372,35 @@ async function fetchData() {
     errorState.classList.add('hidden');
 
     try {
-        const res = await fetch(`https://sim-db-api.faizankhichi.me/?search=${encodeURIComponent(query)}`);
-        const json = await res.json();
+        const digits = normalizeNumber(query);
+        const data = await fetchUpstream(digits);
 
         reportDate.innerText = new Date().toLocaleString();
 
-        if (json.ok && json.data && json.data.length) {
-            json.data.forEach(item => {
-                const name = item.nam || 'N/A';
-                const mobile = item.nbr || 'N/A';
-                let cnic = item.cni || 'N/A';
-                if (cnic.length >= 13) {
-                    cnic = cnic.slice(0,5) + '******' + cnic.slice(-1);
-                }
-                const address = item.adr || '';
+        const records = data?.data;
+        const record = Array.isArray(records) ? records[0] : records;
 
-                resultsList.innerHTML += `
-                    <div class="p-5 rounded-2xl bg-black/40 border border-white/10">
-                        <p class="font-extrabold text-red-400 text-lg">${escapeHTML(name)}</p>
-                        <p class="text-sm mt-1">Mobile: ${escapeHTML(mobile)}</p>
-                        <p class="text-sm">CNIC: ${escapeHTML(cnic)}</p>
-                        <p class="text-xs text-slate-400 mt-2">${escapeHTML(address)}</p>
-                    </div>
-                `;
-            });
-            contentArea.classList.remove('hidden');
-            setTimeout(() => contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
-        } else {
+        if (!record) {
+            console.warn('No record in upstream response', data);
             errorState.classList.remove('hidden');
+            return;
         }
+
+        let cnic = record.cnic || 'N/A';
+        if (cnic.length >= 13) {
+            cnic = cnic.slice(0, 5) + '******' + cnic.slice(-1);
+        }
+
+        resultsList.innerHTML = `
+            <div class="p-5 rounded-2xl bg-black/40 border border-white/10">
+                <p class="font-extrabold text-red-400 text-lg">${escapeHTML(record.full_name || 'Not Found')}</p>
+                <p class="text-sm mt-1">Mobile: ${escapeHTML(record.phone || query)}</p>
+                <p class="text-sm">CNIC: ${escapeHTML(cnic)}</p>
+                <p class="text-xs text-slate-400 mt-2">${escapeHTML(record.address || 'Not Found')}</p>
+            </div>
+        `;
+        contentArea.classList.remove('hidden');
+        setTimeout(() => contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
     } catch (err) {
         console.error(err);
         errorState.classList.remove('hidden');
@@ -362,7 +414,7 @@ async function fetchData() {
 function escapeHTML(str) {
     if (!str) return '';
     const map = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};
-    return str.replace(/[&<>"']/g, m => map[m]);
+    return String(str).replace(/[&<>"']/g, m => map[m]);
 }
 
 // ─── SCREENSHOT ───────────────────────
@@ -375,10 +427,10 @@ function takeScreenshot() {
     });
 }
 </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5369712238677362"
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5369712238677362"
      crossorigin="anonymous"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5369712238677362"
-     crossorigin="anonymous"></script>
+
 <!-- display ad -->
 <ins class="adsbygoogle"
      style="display:block"
